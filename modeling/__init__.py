@@ -5,6 +5,7 @@
 """
 
 from .example_model import ResNet18
+from .vit_model import MyViT
 
 
 def build_model(cfg):

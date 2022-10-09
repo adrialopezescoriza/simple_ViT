@@ -19,12 +19,12 @@ class TestDataSet(unittest.TestCase):
     def test_optimzier(self):
         model = build_model(cfg)
         optimizer = make_optimizer(cfg, model)
-        from IPython import embed;
+        from IPython import embed
         embed()
 
     def test_cfg(self):
-        cfg.merge_from_file('configs/train_mnist_softmax.yml')
-        from IPython import embed;
+        cfg.merge_from_file('../configs/train_mnist_softmax.yml')
+        from IPython import embed
         embed()
 
     def test_dataset(self):
@@ -32,7 +32,7 @@ class TestDataSet(unittest.TestCase):
         val_transform = build_transforms(cfg, False)
         train_set = build_dataset(train_transform)
         val_test = build_dataset(val_transform, False)
-        from IPython import embed;
+        from IPython import embed
         embed()
 
 

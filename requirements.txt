@@ -1,5 +1,16 @@
 # PyTorch
 -f https://download.pytorch.org/whl/cu113/torch_stable.html
 torch==1.12.1+cu113
+
 # TorchVision
 torchvision>=0.13.0
+
+# YACS
+yacs>=0.1.8
+
+# Ignite
+pytorch-ignite==0.1.2
+
+# IPython
+ipython
+

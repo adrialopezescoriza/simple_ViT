@@ -1,9 +1,4 @@
 # encoding: utf-8
-"""
-@author:  sherlock
-@contact: sherlockliao01@gmail.com
-"""
-
 import logging
 
 from ignite.engine import Events, create_supervised_trainer, create_supervised_evaluator

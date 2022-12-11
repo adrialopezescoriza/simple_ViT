@@ -1,11 +1,12 @@
 # encoding: utf-8
 import logging
 
+from torch.utils.tensorboard import SummaryWriter
 from ignite.engine import Events, create_supervised_trainer, create_supervised_evaluator
 from ignite.handlers import ModelCheckpoint, Timer
 from ignite.metrics import Accuracy, Loss, RunningAverage
 
-
+writer = SummaryWriter()
 def do_train(
         cfg,
         model,
@@ -20,6 +21,8 @@ def do_train(
     output_dir = cfg.OUTPUT_DIR
     device = cfg.MODEL.DEVICE
     epochs = cfg.SOLVER.MAX_EPOCHS
+
+    writer.add_scalar("Parameters/learning_rate", cfg.SOLVER.BASE_LR)
 
     logger = logging.getLogger("template_model.train")
     logger.info("Start training")
@@ -41,7 +44,7 @@ def do_train(
         iter = (engine.state.iteration - 1) % len(train_loader) + 1
 
         if iter % log_period == 0:
-            logger.info("Epoch[{}] Iteration[{}/{}] Loss: {:.2f}"
+            logger.info("Epoch[{}] Iteration[{}/{}] Loss: {:.4f}"
                         .format(engine.state.epoch, iter, len(train_loader), engine.state.metrics['avg_loss']))
 
     @trainer.on(Events.EPOCH_COMPLETED)
@@ -50,6 +53,7 @@ def do_train(
         metrics = evaluator.state.metrics
         avg_accuracy = metrics['accuracy']
         avg_loss = metrics['ce_loss']
+        writer.add_scalar("Loss/train", avg_loss, engine.state.epoch)
         logger.info("Training Results - Epoch: {} Avg accuracy: {:.3f} Avg Loss: {:.3f}"
                     .format(engine.state.epoch, avg_accuracy, avg_loss))
 
@@ -60,6 +64,7 @@ def do_train(
             metrics = evaluator.state.metrics
             avg_accuracy = metrics['accuracy']
             avg_loss = metrics['ce_loss']
+            writer.add_scalar("Loss/validation", avg_loss, engine.state.epoch)
             logger.info("Validation Results - Epoch: {} Avg accuracy: {:.3f} Avg Loss: {:.3f}"
                         .format(engine.state.epoch, avg_accuracy, avg_loss)
                         )
@@ -73,3 +78,4 @@ def do_train(
         timer.reset()
 
     trainer.run(train_loader, max_epochs=epochs)
+    writer.flush()

@@ -13,7 +13,7 @@ def patchify(images, n_patches):
     patches = torch.zeros(n, n_patches ** 2, h * w // n_patches ** 2)
     patch_size = h // n_patches
 
-    # TODO: Make efficient
+    # TODO: Make efficient (parallelize)
     for idx, image in enumerate(images):
         for i in range(n_patches):
             for j in range(n_patches):
@@ -97,7 +97,7 @@ class MyViTBlock(nn.Module):
 
     def forward(self, x):
         out = x + self.mhsa(self.norm1(x))
-        out = out + self.mlp(self.norm2(out))
+        out = self.norm2(out) + self.mlp(self.norm2(out))
         return out
 
 
@@ -138,8 +138,7 @@ class MyViT(nn.Module):
         n, c, h, w = images.shape
 
         # Patchify
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        patches = patchify(images, self.n_patches).to(device)
+        patches = patchify(images, self.n_patches).to(images.device)
 
         # Linear mapping: build vector representations
         tokens = self.linear_mapper(patches)

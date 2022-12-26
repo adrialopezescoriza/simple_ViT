@@ -1,10 +1,12 @@
 # encoding: utf-8
 import logging
 
+import torch.cuda
 from torch.utils.tensorboard import SummaryWriter
 from ignite.engine import Events, create_supervised_trainer, create_supervised_evaluator
 from ignite.handlers import ModelCheckpoint, Timer
 from ignite.metrics import Accuracy, Loss, RunningAverage
+from ignite.contrib.handlers import LRScheduler
 
 writer = SummaryWriter()
 def do_train(
@@ -17,23 +19,25 @@ def do_train(
         loss_fn,
 ):
     log_period = cfg.SOLVER.LOG_PERIOD
-    checkpoint_period = cfg.SOLVER.CHECKPOINT_PERIOD
     output_dir = cfg.OUTPUT_DIR
     device = cfg.MODEL.DEVICE
     epochs = cfg.SOLVER.MAX_EPOCHS
-
-    writer.add_scalar("Parameters/learning_rate", cfg.SOLVER.BASE_LR)
 
     logger = logging.getLogger("template_model.train")
     logger.info("Start training")
     trainer = create_supervised_trainer(model, optimizer, loss_fn, device=device)
     evaluator = create_supervised_evaluator(model, metrics={'accuracy': Accuracy(),
                                                             'ce_loss': Loss(loss_fn)}, device=device)
-    checkpointer = ModelCheckpoint(output_dir, 'mnist', checkpoint_period, n_saved=10, require_empty=False)
+    checkpointer = ModelCheckpoint(output_dir, 'mnist', n_saved=10, require_empty=False)
     timer = Timer(average=True)
 
-    trainer.add_event_handler(Events.EPOCH_COMPLETED, checkpointer, {'model': model.state_dict(),
-                                                                     'optimizer': optimizer.state_dict()})
+    trainer.add_event_handler(Events.EPOCH_COMPLETED, checkpointer,
+                              {'model': model,
+                               'optimizer': optimizer})
+
+    lr_scheduler = LRScheduler(scheduler)
+    trainer.add_event_handler(Events.EPOCH_COMPLETED, lr_scheduler, {'lr_scheduler': lr_scheduler})
+
     timer.attach(trainer, start=Events.EPOCH_STARTED, resume=Events.ITERATION_STARTED,
                  pause=Events.ITERATION_COMPLETED, step=Events.ITERATION_COMPLETED)
 
@@ -53,7 +57,9 @@ def do_train(
         metrics = evaluator.state.metrics
         avg_accuracy = metrics['accuracy']
         avg_loss = metrics['ce_loss']
+        writer.add_scalar("Parameters/learning_rate", lr_scheduler.get_param().as_integer_ratio(), engine.state.epoch)
         writer.add_scalar("Loss/train", avg_loss, engine.state.epoch)
+        logger.info('Parameters - Epoch: {} Learning rate: {:.3f}'.format(lr_scheduler.get_param().as_integer_ratio()))
         logger.info("Training Results - Epoch: {} Avg accuracy: {:.3f} Avg Loss: {:.3f}"
                     .format(engine.state.epoch, avg_accuracy, avg_loss))
 

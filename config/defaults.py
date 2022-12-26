@@ -17,7 +17,7 @@ from yacs.config import CfgNode as CN
 _C = CN()
 
 _C.MODEL = CN()
-_C.MODEL.DEVICE = "cpu"
+_C.MODEL.DEVICE = "cuda"
 _C.MODEL.NUM_CLASSES = 10
 
 # -----------------------------------------------------------------------------
@@ -33,7 +33,7 @@ _C.INPUT.MIN_SCALE_TRAIN = 0.5
 # Maximum scale for the image during test
 _C.INPUT.MAX_SCALE_TRAIN = 1.2
 # Random probability for image horizontal flip
-_C.INPUT.PROB = 0.5
+_C.INPUT.PROB = 0.1
 # Values to be used for image normalization
 _C.INPUT.PIXEL_MEAN = [0.1307, ]
 # Values to be used for image normalization
@@ -61,10 +61,10 @@ _C.DATALOADER.NUM_WORKERS = 8
 _C.SOLVER = CN()
 _C.SOLVER.OPTIMIZER_NAME = "SGD"
 
-_C.SOLVER.MAX_EPOCHS = 50
+_C.SOLVER.MAX_EPOCHS = 500
 
-_C.SOLVER.BASE_LR = 0.001
-_C.SOLVER.BIAS_LR_FACTOR = 2
+_C.SOLVER.BASE_LR = 0.005
+_C.SOLVER.BIAS_LR_FACTOR = 1
 
 _C.SOLVER.MOMENTUM = 0.9
 
@@ -89,7 +89,7 @@ _C.SOLVER.IMS_PER_BATCH = 16
 # This is global, so if we have 8 GPUs and IMS_PER_BATCH = 16, each GPU will
 # see 2 images per batch
 _C.TEST = CN()
-_C.TEST.IMS_PER_BATCH = 8
+_C.TEST.IMS_PER_BATCH = 16
 _C.TEST.WEIGHT = "checkpoints/mnist_model_50.pth"
 
 # ---------------------------------------------------------------------------- #

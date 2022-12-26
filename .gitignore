@@ -8,3 +8,5 @@ torchlib.egg-info
 checkpoints
 runs
 MNIST
+config
+configs

@@ -17,16 +17,16 @@ from data import make_data_loader
 from engine.example_trainer import do_train
 from modeling import build_model
 from solver import make_optimizer
+from solver.lr_scheduler import  make_scheduler
 
 from utils.logger import setup_logger
 
 
 def train(cfg):
     model = build_model(cfg)
-    device = cfg.MODEL.DEVICE
 
     optimizer = make_optimizer(cfg, model)
-    scheduler = None
+    scheduler = make_scheduler('one_cycle_cos', optimizer)
 
     arguments = {}
 
@@ -39,7 +39,7 @@ def train(cfg):
         train_loader,
         val_loader,
         optimizer,
-        None,
+        scheduler,
         F.cross_entropy,
     )
 
